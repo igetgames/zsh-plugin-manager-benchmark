@@ -74,10 +74,10 @@ _docker_build() {
 _docker_args() {
     case $1 in
         antibody )
-            echo "-v $PWD/src/antibody/plugins.txt:/root/.antibody/plugins.txt"
+            echo "-v $PWD/src/normal/antibody/plugins.txt:/root/.antibody/plugins.txt"
             ;;
         sheldon )
-            echo "-v $PWD/src/sheldon/plugins.toml:/root/.sheldon/plugins.toml"
+            echo "-v $PWD/src/normal/sheldon/plugins.toml:/root/.sheldon/plugins.toml"
             ;;
         * )
             ;;
@@ -93,79 +93,147 @@ _docker_run() {
     docker run \
         $args \
         -v "$PWD/results:/target" \
-        -v "$PWD/src/$kind/zshrc:/root/.zshrc" \
+        -v "$PWD/src/normal/$kind/zshrc:/root/.zshrc" \
         -it zsh-plugin-manager-benchmark \
         "$@"
 }
 
-# Updates src/ with the plugins in plugins.txt.
-_update_plugins() {
+# Updates src/normal/ with the plugins in plugins.txt.
+_update_plugins_normal() {
     local kind=$1
 
     plugins=$(cat src/plugins.txt)
 
     # Antibody
     if [ -z "$kind" ] || [ "$kind" = "antibody" ]; then
-        cp src/plugins.txt src/antibody/plugins.txt
+        cp src/plugins.txt src/normal/antibody/plugins.txt
     fi
 
     # Antigen
     if [ -z "$kind" ] || [ "$kind" = "antigen" ]; then
-        echo '#!/usr/bin/env zsh' > src/antigen/zshrc
-        echo 'source /root/antigen.zsh' >> src/antigen/zshrc
+        echo '#!/usr/bin/env zsh' > src/normal/antigen/zshrc
+        echo 'source /root/antigen.zsh' >> src/normal/antigen/zshrc
         for plugin in $plugins; do
-            echo "antigen bundle \"$plugin\"" >> src/antigen/zshrc
+            echo "antigen bundle \"$plugin\"" >> src/normal/antigen/zshrc
         done
-        echo "antigen apply" >> src/antigen/zshrc
+        echo "antigen apply" >> src/normal/antigen/zshrc
     fi
 
     # Sheldon
     if [ -z "$kind" ] || [ "$kind" = "sheldon" ]; then
-        echo "" > src/sheldon/plugins.toml
+        echo "" > src/normal/sheldon/plugins.toml
         for plugin in $plugins; do
-            echo "plugins.'$plugin'.github = '$plugin'" >> src/sheldon/plugins.toml
+            echo "plugins.'$plugin'.github = '$plugin'" >> src/normal/sheldon/plugins.toml
         done
     fi
 
     # Zgen
     if [ -z "$kind" ] || [ "$kind" = "zgen" ]; then
-        echo '#!/usr/bin/env zsh' > src/zgen/zshrc
-        echo 'source "/root/.zgen/zgen.zsh"' >> src/zgen/zshrc
-        echo 'if ! zgen saved; then' >> src/zgen/zshrc
+        echo '#!/usr/bin/env zsh' > src/normal/zgen/zshrc
+        echo 'source "/root/.zgen/zgen.zsh"' >> src/normal/zgen/zshrc
+        echo 'if ! zgen saved; then' >> src/normal/zgen/zshrc
         for plugin in $plugins; do
-            echo "  zgen load $plugin" >> src/zgen/zshrc
+            echo "  zgen load $plugin" >> src/normal/zgen/zshrc
         done
-        echo '  zgen save' >> src/zgen/zshrc
-        echo 'fi' >> src/zgen/zshrc
+        echo '  zgen save' >> src/normal/zgen/zshrc
+        echo 'fi' >> src/normal/zgen/zshrc
     fi
 
     # Zinit
     if [ -z "$kind" ] || [ "$kind" = "zinit" ]; then
-        echo '#!/usr/bin/env zsh' > src/zinit/zshrc
-        echo 'source "/root/.zinit/bin/zinit.zsh"' >> src/zinit/zshrc
-        echo 'zinit wait lucid for \' >> src/zinit/zshrc
+        echo '#!/usr/bin/env zsh' > src/normal/zinit/zshrc
+        echo 'source "/root/.zinit/bin/zinit.zsh"' >> src/normal/zinit/zshrc
+        echo 'zinit for \' >> src/normal/zinit/zshrc
         for plugin in $plugins; do
-            echo "  light-mode $plugin \\" >> src/zinit/zshrc
+            echo "  light-mode $plugin \\" >> src/normal/zinit/zshrc
         done
     fi
 
     # Zplug
     if [ -z "$kind" ] || [ "$kind" = "zplug" ]; then
-        echo '#!/usr/bin/env zsh' > src/zplug/zshrc
-        echo 'export ZPLUG_HOME=/root/.zplug' >> src/zplug/zshrc
-        echo 'source "$ZPLUG_HOME/init.zsh"' >> src/zplug/zshrc
+        echo '#!/usr/bin/env zsh' > src/normal/zplug/zshrc
+        echo 'export ZPLUG_HOME=/root/.zplug' >> src/normal/zplug/zshrc
+        echo 'source "$ZPLUG_HOME/init.zsh"' >> src/normal/zplug/zshrc
         for plugin in $plugins; do
-            echo "zplug \"$plugin\"" >> src/zplug/zshrc
+            echo "zplug \"$plugin\"" >> src/normal/zplug/zshrc
         done
-        echo '! zplug check && zplug install' >> src/zplug/zshrc
-        echo 'zplug load' >> src/zplug/zshrc
+        echo '! zplug check && zplug install' >> src/normal/zplug/zshrc
+        echo 'zplug load' >> src/normal/zplug/zshrc
     fi
+}
+
+# Updates src/deferred/ with the plugins in plugins.txt.
+_update_plugins_deferred() {
+    local kind=$1
+
+    plugins=$(cat src/plugins.txt)
+
+    # Antibody
+    if [ -z "$kind" ] || [ "$kind" = "antibody" ]; then
+        cp src/plugins.txt src/deferred/antibody/plugins.txt
+    fi
+
+    # Antigen
+    if [ -z "$kind" ] || [ "$kind" = "antigen" ]; then
+        echo '#!/usr/bin/env zsh' > src/deferred/antigen/zshrc
+        echo 'source /root/antigen.zsh' >> src/deferred/antigen/zshrc
+        for plugin in $plugins; do
+            echo "antigen bundle \"$plugin\"" >> src/deferred/antigen/zshrc
+        done
+        echo "antigen apply" >> src/deferred/antigen/zshrc
+    fi
+
+    # Sheldon
+    if [ -z "$kind" ] || [ "$kind" = "sheldon" ]; then
+        echo "" > src/deferred/sheldon/plugins.toml
+        for plugin in $plugins; do
+            echo "plugins.'$plugin'.github = '$plugin'" >> src/deferred/sheldon/plugins.toml
+        done
+    fi
+
+    # Zgen
+    if [ -z "$kind" ] || [ "$kind" = "zgen" ]; then
+        echo '#!/usr/bin/env zsh' > src/deferred/zgen/zshrc
+        echo 'source "/root/.zgen/zgen.zsh"' >> src/deferred/zgen/zshrc
+        echo 'if ! zgen saved; then' >> src/deferred/zgen/zshrc
+        for plugin in $plugins; do
+            echo "  zgen load $plugin" >> src/deferred/zgen/zshrc
+        done
+        echo '  zgen save' >> src/deferred/zgen/zshrc
+        echo 'fi' >> src/deferred/zgen/zshrc
+    fi
+
+    # Zinit
+    if [ -z "$kind" ] || [ "$kind" = "zinit" ]; then
+        echo '#!/usr/bin/env zsh' > src/deferred/zinit/zshrc
+        echo 'source "/root/.zinit/bin/zinit.zsh"' >> src/deferred/zinit/zshrc
+        echo 'zinit for \' >> src/deferred/zinit/zshrc
+        for plugin in $plugins; do
+            echo "  light-mode $plugin \\" >> src/deferred/zinit/zshrc
+        done
+    fi
+
+    # Zplug
+    if [ -z "$kind" ] || [ "$kind" = "zplug" ]; then
+        echo '#!/usr/bin/env zsh' > src/deferred/zplug/zshrc
+        echo 'export ZPLUG_HOME=/root/.zplug' >> src/deferred/zplug/zshrc
+        echo 'source "$ZPLUG_HOME/init.zsh"' >> src/deferred/zplug/zshrc
+        for plugin in $plugins; do
+            echo "zplug \"$plugin\"" >> src/deferred/zplug/zshrc
+        done
+        echo '! zplug check && zplug install' >> src/deferred/zplug/zshrc
+        echo 'zplug load' >> src/deferred/zplug/zshrc
+    fi
+}
+
+_update_plugins() {
+    _update_plugins_normal "$1"
 }
 
 # Runs the 'update-plugins' command.
 command_update_plugins() {
     local kind=$1
-    _update_plugins "$kind"
+    _update_plugins_normal "$kind"
 }
 
 # Runs the 'install' command.
@@ -311,6 +379,9 @@ main() {
             ;;
         load )
             command_load "$kind"
+            ;;
+        load-deferred )
+            command_load_deferred "$kind"
             ;;
         run )
             command_run "$kind"
