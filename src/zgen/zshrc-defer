@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+source "/root/.zgen/zgen.zsh"
+if ! zgen saved; then
+  zgen load romkatv/zsh-defer
+  zsh-defer zgen load zsh-users/zsh-autosuggestions
+  zsh-defer zgen load wting/autojump
+  zsh-defer zgen load zsh-users/zsh-syntax-highlighting
+  zsh-defer zgen load StackExchange/blackbox
+  zsh-defer zgen load sobolevn/git-secret
+  zsh-defer zgen load b4b4r07/enhancd
+  zsh-defer zgen load fcambus/ansiweather
+  zsh-defer zgen load chriskempson/base16-shell
+  zsh-defer zgen load supercrabtree/k
+  zsh-defer zgen load zsh-users/zsh-history-substring-search
+  zsh-defer zgen load wfxr/forgit
+  zsh-defer zgen load zdharma/fast-syntax-highlighting
+  zsh-defer zgen load iam4x/zsh-iterm-touchbar
+  zsh-defer zgen load unixorn/git-extra-commands
+  zsh-defer zgen load MichaelAquilina/zsh-you-should-use
+  zsh-defer zgen load mfaerevaag/wd
+  zsh-defer zgen load zsh-users/zaw
+  zsh-defer zgen load Tarrasch/zsh-autoenv
+  zsh-defer zgen load mafredri/zsh-async
+  zsh-defer zgen load djui/alias-tips
+  zsh-defer zgen load agkozak/zsh-z
+  zsh-defer zgen load changyuheng/fz
+  zsh-defer zgen load b4b4r07/emoji-cli
+  zsh-defer zgen load Tarrasch/zsh-bd
+  zsh-defer zgen load Vifon/deer
+  zsh-defer zgen load zdharma/history-search-multi-word
+  zgen save
+fi

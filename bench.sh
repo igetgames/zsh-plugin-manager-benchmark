@@ -25,6 +25,7 @@ Commands:
   update-plugins  Update the plugin manager source from plugins.txt.
   install         Benchmark the 'install' step.
   load            Benchmark the 'load' step.
+  defer           Benchmark the 'load' step with deferred loading (if supported).
   run             Open 'zsh' with a particular plugin manager.
   version         Output the versions of the plugin managers.
 EOF
@@ -143,6 +144,98 @@ _update_plugins() {
     if [ -z "$kind" ] || [ "$kind" = "zinit" ]; then
         echo '#!/usr/bin/env zsh' > src/zinit/zshrc
         echo 'source "/root/.zinit/bin/zinit.zsh"' >> src/zinit/zshrc
+        echo 'zinit for \' >> src/zinit/zshrc
+        for plugin in $plugins; do
+            echo "  light-mode $plugin \\" >> src/zinit/zshrc
+        done
+    fi
+
+    # Zplug
+    if [ -z "$kind" ] || [ "$kind" = "zplug" ]; then
+        echo '#!/usr/bin/env zsh' > src/zplug/zshrc
+        echo 'export ZPLUG_HOME=/root/.zplug' >> src/zplug/zshrc
+        echo 'source "$ZPLUG_HOME/init.zsh"' >> src/zplug/zshrc
+        for plugin in $plugins; do
+            echo "zplug \"$plugin\"" >> src/zplug/zshrc
+        done
+        echo '! zplug check && zplug install' >> src/zplug/zshrc
+        echo 'zplug load' >> src/zplug/zshrc
+    fi
+}
+
+# Updates src/ with the plugins in plugins.txt.
+_update_plugins_defer() {
+    local kind=$1
+
+    plugins=$(cat src/plugins.txt)
+
+    # Antibody
+    if [ -z "$kind" ] || [ "$kind" = "antibody" ]; then
+        local zshrc=src/antibody/zshrc-defer
+        cp src/plugins.txt src/antibody/plugins.txt
+        echo '#!/usr/bin/env zsh' > $zshrc
+        echo 'source <(antibody init)' >> $zshrc
+        echo "antibody bundle romkatv/zsh-defer" >> $zshrc
+        for plugin in $plugins; do
+            echo "zsh-defer antibody bundle \"$plugin\"" >> $zshrc
+        done
+    fi
+
+    # Antigen
+    if [ -z "$kind" ] || [ "$kind" = "antigen" ]; then
+        local zshrc=src/antigen/zshrc-defer
+        echo '#!/usr/bin/env zsh' > $zshrc
+        echo 'source /root/antigen.zsh' >> $zshrc
+        for plugin in $plugins; do
+            echo "antigen bundle \"$plugin\"" >> $zshrc
+        done
+        echo "antigen apply" >> $zshrc
+    fi
+
+    # Sheldon
+    if [ -z "$kind" ] || [ "$kind" = "sheldon" ]; then
+        local config=src/sheldon/plugins-defer.toml
+        cat > $config <<EOF
+apply = ['defer']
+
+[templates]
+defer = { value = 'zsh-defer source "{{ file }}"', each = true }
+
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+apply = ['source']
+EOF
+        for plugin in $plugins; do
+            cat >> $config <<EOF
+
+[plugins.'$plugin']
+github = '$plugin'
+EOF
+        done
+    fi
+
+    # Zgen
+    if [ -z "$kind" ] || [ "$kind" = "zgen" ]; then
+        local zshrc=src/zgen/zshrc-defer
+        cat > $zshrc <<EOF
+#!/usr/bin/env zsh
+source "/root/.zgen/zgen.zsh"
+if ! zgen saved; then
+  zgen load romkatv/zsh-defer
+EOF
+        for plugin in $plugins; do
+            echo "  zsh-defer zgen load $plugin" >> $zshrc
+        done
+        cat >> $zshrc <<EOF
+  zsh-defer zgen save
+fi
+EOF
+    fi
+
+    # Zinit
+    if [ -z "$kind" ] || [ "$kind" = "zinit" ]; then
+        echo '#!/usr/bin/env zsh' > src/zinit/zshrc
+        echo 'source "/root/.zinit/bin/zinit.zsh"' >> src/zinit/zshrc
         echo 'zinit wait lucid for \' >> src/zinit/zshrc
         for plugin in $plugins; do
             echo "  light-mode $plugin \\" >> src/zinit/zshrc
@@ -166,6 +259,7 @@ _update_plugins() {
 command_update_plugins() {
     local kind=$1
     _update_plugins "$kind"
+    _update_plugins_defer "$kind"
 }
 
 # Runs the 'install' command.
@@ -311,6 +405,9 @@ main() {
             ;;
         load )
             command_load "$kind"
+            ;;
+        defer )
+            command_defer "$kind"
             ;;
         run )
             command_run "$kind"
