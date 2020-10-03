@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+source "/root/.zgen/zgen.zsh"
+if ! zgen saved; then
+    if [ "$DEFER" = true ]; then
+        zgen load romkatv/zsh-defer
+        {% for plugin in plugins -%}
+        zsh-defer zgen load '{{ plugin }}'
+        {% endfor -%}
+        zsh-defer zgen save
+    else
+        {% for plugin in plugins -%}
+        zgen load '{{ plugin }}'
+        {% endfor -%}
+        zgen save
+    fi
+fi

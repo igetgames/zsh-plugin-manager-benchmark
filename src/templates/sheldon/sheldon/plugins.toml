@@ -1,0 +1,4 @@
+{% for plugin in plugins %}
+[plugins.'{{ plugin }}']
+github = '{{ plugin }}'
+{% endfor %}

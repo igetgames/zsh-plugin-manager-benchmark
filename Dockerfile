@@ -22,7 +22,7 @@ RUN curl -fLsS -o /root/antigen.zsh https://git.io/antigen
 
 # Sheldon
 RUN curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
-    | bash -s -- --repo "rossmacarthur/sheldon" --to /usr/local/bin
+    | bash -s -- --repo "rossmacarthur/sheldon" --tag 0.5.3 --to /usr/local/bin
 
 # Zgen
 RUN git clone https://github.com/tarjoilija/zgen.git /root/.zgen

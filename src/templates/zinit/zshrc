@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+source "/root/.zinit/bin/zinit.zsh"
+if [ "$DEFER" = true ]; then
+
+zinit wait lucid for \
+    {% for plugin in plugins -%}
+    light-mode '{{ plugin }}' {% if not loop.last %}\{% endif %}
+    {% endfor %}
+
+else
+
+zinit for \
+    {% for plugin in plugins -%}
+    light-mode '{{ plugin }}' {% if not loop.last %}\{% endif %}
+    {% endfor %}
+
+fi

@@ -1,0 +1,12 @@
+[templates]
+defer = { value = 'zsh-defer source "{% raw %}{{ file }}{% endraw %}"', each = true }
+
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+apply = ["source"]
+
+{% for plugin in plugins %}
+[plugins.'{{ plugin }}']
+github = '{{ plugin }}'
+apply = ['defer']
+{% endfor %}

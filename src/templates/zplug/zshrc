@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+export ZPLUG_HOME=/root/.zplug
+source "$ZPLUG_HOME/init.zsh"
+{% for plugin in plugins -%}
+zplug '{{ plugin }}'
+{% endfor -%}
+! zplug check && zplug install
+zplug load

@@ -1,0 +1,16 @@
+[package]
+name = "zsh-plugin-manager-benchmark"
+version = "0.1.0"
+authors = ["Ross MacArthur <ross@macarthur.io>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.32"
+femme = "2.1.1"
+include_dir = "0.6.0"
+log = "0.4.11"
+parse-display = "0.2.0"
+structopt = "0.3.17"
+tera = "1.5.0"

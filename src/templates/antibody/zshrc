@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+source <(antibody init)
+if [ "$DEFER" = true ]; then
+    antibody bundle romkatv/zsh-defer
+    {% for plugin in plugins -%}
+    zsh-defer antibody bundle '{{ plugin }}'
+    {% endfor -%}
+else
+    {% for plugin in plugins -%}
+    antibody bundle '{{ plugin }}'
+    {% endfor -%}
+fi

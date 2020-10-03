@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+if [ "$DEFER" = true ]; then
+    source <(sheldon --config-file $HOME/.sheldon/plugins-defer.toml source)
+else
+    source <(sheldon source)
+fi
