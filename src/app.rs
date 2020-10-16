@@ -196,7 +196,7 @@ fn bench_cmd(bench: &Bench, kind: &Kind) -> Vec<String> {
             "--warmup",
             "3",
             "--export-json",
-            format!("/results/load-{}.json", kind),
+            format!("/results/defer-{}.json", kind),
             "DEFER=true zsh -ic exit"
         ],
     }
