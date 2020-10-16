@@ -49,11 +49,11 @@ Tested on
 - 8192 MB RAM
 
 Versions
-- antibody v6.1.0
+- antibody v6.1.1
 - antigen v2.2.2
 - sheldon v0.5.3
 - zgen master @ 0b669d2
-- zinit master @ 5e841ab3
+- zinit master @ 28478498
 - zplug master @ c4dea76
 
 ## Usage

@@ -2,6 +2,7 @@
 source /root/antigen.zsh
 if [ "$DEFER" = true ]; then
     antigen bundle romkatv/zsh-defer
+    antigen apply
     {% for plugin in plugins -%}
     zsh-defer antigen bundle '{{ plugin }}'
     {% endfor -%}
