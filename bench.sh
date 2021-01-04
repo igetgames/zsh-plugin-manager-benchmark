@@ -197,7 +197,7 @@ command_install() {
                 --prepare "$prepare" \
                 --warmup 3 \
                 --export-json "/target/install-$k.json" \
-                --style "$HYPERFINE_STYLE"
+                --style "$HYPERFINE_STYLE" \
                 'zsh -ic exit'
         fi
     done
@@ -217,7 +217,7 @@ command_load() {
                 hyperfine \
                 --warmup 3 \
                 --export-json "/target/load-$k.json" \
-                --style "$HYPERFINE_STYLE"
+                --style "$HYPERFINE_STYLE" \
                 'zsh -ic exit'
         fi
     done
