@@ -281,7 +281,7 @@ command_versions() {
 }
 
 main() {
-    local cmd kind
+    local cmd kind code
 
     while test $# -gt 0; do
         case $1 in
@@ -335,6 +335,10 @@ main() {
             err "unreachable\n"
             ;;
     esac
+
+    code=$?
+    test $code -ne 0 && err "Error: '%s' command failed with error code %d\n\n" "$cmd" $code
+    exit 0
 }
 
 main "$@"
