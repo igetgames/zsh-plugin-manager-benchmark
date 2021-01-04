@@ -15,8 +15,8 @@ on:
         required: false
 
 env:
-  BRANCH_NAME: ${{ github.event.inputs.branch_name || benchmark }}
-  COMMIT_MESSAGE: ${{ github.event.inputs.commit_message || "Update benchmark results" }}
+  BRANCH_NAME: ${{ github.event.inputs.branch_name || 'benchmark' }}
+  COMMIT_MESSAGE: ${{ github.event.inputs.commit_message || 'Update benchmark results' }}
 
 jobs:
   benchmark:
