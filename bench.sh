@@ -3,10 +3,15 @@
 # Supported types of plugin managers. ('base' is an empty .zshrc)
 PLUGIN_MANAGERS="base antibody antigen sheldon zgen zinit zplug"
 
-# Enable interactive input during `docker run` except during CI
 DOCKER_RUN_INTERACTIVE="-i"
+HYPERFINE_STYLE="auto"
+
 if [ -n "$CI" ]; then
-    DOCKER_RUN_INTERACTIVE=""
+    # Disable interactive input during `docker run`
+    DOCKER_RUN_INTERACTIVE="-i=false"
+
+    # Disable interactive output from `hyperfine`
+    HYPERFINE_STYLE="color"
 fi
 
 # Prints an error message and exits.
@@ -192,6 +197,7 @@ command_install() {
                 --prepare "$prepare" \
                 --warmup 3 \
                 --export-json "/target/install-$k.json" \
+                --style "$HYPERFINE_STYLE"
                 'zsh -ic exit'
         fi
     done
@@ -211,6 +217,7 @@ command_load() {
                 hyperfine \
                 --warmup 3 \
                 --export-json "/target/load-$k.json" \
+                --style "$HYPERFINE_STYLE"
                 'zsh -ic exit'
         fi
     done
