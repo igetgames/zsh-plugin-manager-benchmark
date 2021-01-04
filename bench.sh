@@ -187,7 +187,7 @@ command_install() {
                 --warmup 3 \
                 --export-json "/target/install-$k.json" \
                 --show-output \
-                'zsh -ic exit'
+                'zsh -ilc exit'
         fi
     done
 }
@@ -207,7 +207,7 @@ command_load() {
                 --warmup 3 \
                 --export-json "/target/load-$k.json" \
                 --show-output \
-                'zsh -ic exit'
+                'zsh -ilc exit'
         fi
     done
 }
