@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 # Supported types of plugin managers. ('base' is an empty .zshrc)
 PLUGIN_MANAGERS="base antibody antigen sheldon zgen zinit zplug"
 
@@ -75,7 +73,7 @@ _prepare_install() {
 
 # Build a Docker container for benchmarking.
 _docker_build() {
-    docker build --tag zsh-plugin-manager-benchmark . #>/dev/null
+    docker build --tag zsh-plugin-manager-benchmark . >/dev/null
 }
 
 # Outputs extra arguments for the Docker run command for the given plugin manager.
@@ -194,8 +192,7 @@ command_install() {
                 --prepare "$prepare" \
                 --warmup 3 \
                 --export-json "/target/install-$k.json" \
-                --show-output \
-                'zsh -ilc exit'
+                'zsh -ic exit'
         fi
     done
 }
@@ -214,8 +211,7 @@ command_load() {
                 hyperfine \
                 --warmup 3 \
                 --export-json "/target/load-$k.json" \
-                --show-output \
-                'zsh -ilc exit'
+                'zsh -ic exit'
         fi
     done
 }
