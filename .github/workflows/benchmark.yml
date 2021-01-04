@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - '@igetgames/master'
   workflow_dispatch:
     inputs:
       branch_name:
