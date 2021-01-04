@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 
+set -x
+
 # Supported types of plugin managers. ('base' is an empty .zshrc)
 PLUGIN_MANAGERS="base antibody antigen sheldon zgen zinit zplug"
+
+# Enable interactive input during `docker run` except during CI
+DOCKER_RUN_INTERACTIVE="-i"
+if [ -n "$CI" ]; then
+    DOCKER_RUN_INTERACTIVE=""
+fi
 
 # Prints an error message and exits.
 err() {
@@ -94,7 +102,7 @@ _docker_run() {
         $args \
         -v "$PWD/results:/target" \
         -v "$PWD/src/$kind/zshrc:/root/.zshrc" \
-        -it zsh-plugin-manager-benchmark \
+        $DOCKER_RUN_INTERACTIVE -t zsh-plugin-manager-benchmark \
         "$@"
 }
 
