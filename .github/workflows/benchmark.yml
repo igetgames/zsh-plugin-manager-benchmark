@@ -21,18 +21,14 @@ env:
   BRANCH_NAME: ${{ github.event.inputs.branch_name || 'benchmark' }}
   COMMIT_MESSAGE: ${{ github.event.inputs.commit_message || 'Update benchmark results' }}
 
-defaults:
-  run:
-    shell: bash
-    working-directory: .
-
 jobs:
   benchmark:
-    name: Benchmark
-    runs-on: ubuntu-latest
+    name: Benchmark ${{ matrix.kind }} [${{ matrix.os }}]
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
         include:
           - kind: base
           - kind: antibody
@@ -62,9 +58,12 @@ jobs:
       - name: Set up locale
         run: sudo locale-gen en_US.UTF-8
         if: runner.os == 'Linux'
-      - name: Install zsh
+      - name: Install zsh on ${{ runner.os }}
         if: runner.os == 'Linux'
         run: sudo apt install zsh
+      - name: Install zsh on ${{ runner.os }}
+        if: runner.os == 'macOS'
+        run: brew install zsh
       - name: Install hyperfine
         run: |
           curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
@@ -100,7 +99,7 @@ jobs:
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --style color \
-          'zsh -ilc exit'
+          'zsh -ic exit'
 
       - name: DIAG - after install benchmark / before load benchmark
         run: ls -la "$HOME" && env | sort
@@ -110,8 +109,8 @@ jobs:
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
-          --show-output \
-          'zsh -ilc exit'
+          --style color \
+          'zsh -ic exit'
 
       # - name: Set up Python
       #   uses: actions/setup-python@v2
