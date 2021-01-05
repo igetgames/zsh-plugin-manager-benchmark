@@ -25,15 +25,77 @@ jobs:
   benchmark:
     name: Benchmark
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        kind: [base antibody antigen sheldon zgen zinit zplug]
+        include:
+          - kind: antibody
+            prepare: 'rm -rf "$HOME/.cache/antibody"'
+            copy: '$GITHUB_WORKSPACE/src/antibody/plugins.txt:$HOME/.antibody/plugins.txt'
+          - kind: antigen
+            prepare: 'rm -rf "$HOME/.antigen"'
+          - kind: sheldon
+            prepare: 'find "$HOME/.sheldon" -mindepth 1 -maxdepth 1 ! -name "plugins.toml" -exec rm -rf {} \;'
+            copy: '$GITHUB_WORKSPACE/src/sheldon/plugins.toml:$HOME/.sheldon/plugins.toml'
+          - kind: zgen
+            prepare: 'git -C "$HOME/.zgen" clean -dffx'
+          - kind: zinit
+            prepare: 'find "$HOME/.zinit" -mindepth 1 -maxdepth 1 ! -name "bin" -exec rm -rf {} \;'
+          - kind: zplug
+            prepare: 'rm -rf "$HOME/.zplug/repos"'
+
     steps:
-      - name: Checkout project
+      - name: Install zsh
+        if: runner.os == 'Linux'
+        run: sudo apt-get update; sudo apt-get install zsh
+      - name: Install hyperfine
+        run: |
+          curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
+          | bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
+      - name: Install Antibody
+        run: curl -fLsS git.io/antibody | sh -s - -b /usr/local/bin
+      - name: Install Antigen
+        run: curl -fLsS -o "$HOME/antigen.zsh" https://git.io/antigen
+      - name: Install Sheldon
+        run: |
+          curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
+            | bash -s -- --repo "rossmacarthur/sheldon" --to /usr/local/bin
+      - name: Install Zgen
+        run: git clone https://github.com/tarjoilija/zgen.git "$HOME/.zgen"
+      - name: Install Zinit
+        run: |
+          mkdir -p "$HOME/.zinit" \
+            && git clone https://github.com/zdharma/zinit.git "$HOME/.zinit/bin"
+      - name: Install Zplug
+        run: git clone https://github.com/zplug/zplug "$HOME/.zplug"
+
+      - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Update plugins
+        run: ./bench.sh update-plugins
+
+      - name: Copy .zshrc
+        run: |
+          cp "$GITHUB_WORKSPACE/src/${{ matrix.kind }}/zshrc" "$HOME/.zshrc"
+      - name: Copy plugin manager files
+        if: matrix.copy != ''
+        run: cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
+
       - name: Benchmark the 'install' step
-        run: ./bench.sh install
+        run: |
+          hyperfine \
+          --prepare "${{ matrix.prepare }}" \
+          --warmup 3 \
+          --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
+          'zsh -ic exit'
 
       - name: Benchmark the 'load' step
-        run: ./bench.sh load
+        run: |
+          hyperfine \
+          --warmup 3 \
+          --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
+          'zsh -ic exit'
 
       - name: Set up Python
         uses: actions/setup-python@v2
