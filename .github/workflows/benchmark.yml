@@ -33,14 +33,14 @@ jobs:
         include:
           - kind: base
           - kind: antibody
-            install: curl -fLsS git.io/antibody | sudo sh -s - -b /usr/local/bin
+            install: brew install antibody
             prepare: 'rm -rf "$HOME/.cache/antibody"'
             copy: '$GITHUB_WORKSPACE/src/antibody/plugins.txt:$HOME/.antibody/plugins.txt'
           - kind: antigen
             install: curl -fLsS -o "$HOME/antigen.zsh" https://git.io/antigen
             prepare: 'rm -rf "$HOME/.antigen"'
           - kind: sheldon
-            install: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "rossmacarthur/sheldon" --to /usr/local/bin
+            install: brew install sheldon
             prepare: 'find "$HOME/.sheldon" -mindepth 1 -maxdepth 1 ! -name "plugins.toml" -exec rm -rf {} \;'
             copy: '$GITHUB_WORKSPACE/src/sheldon/plugins.toml:$HOME/.sheldon/plugins.toml'
           - kind: zgen
@@ -88,11 +88,11 @@ jobs:
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          --style color \
+          --show-output \
           'zsh -ic exit'
 
       - name: DIAG - after install benchmark / before load benchmark
-        run: ls -la "$HOME" && env | sort
+        run: ls -la "$HOME/.${{ matrix.kind }}" && ls -la "$HOME/.${{ matrix.kind }}/plugins 2>/dev/null"
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
