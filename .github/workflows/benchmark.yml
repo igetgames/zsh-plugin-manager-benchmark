@@ -100,7 +100,6 @@ jobs:
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --style color \
-          --show-output \
           'zsh -ilc exit'
 
       - name: DIAG - after install benchmark / before load benchmark
@@ -111,7 +110,6 @@ jobs:
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
-          --style color \
           --show-output \
           'zsh -ilc exit'
 
