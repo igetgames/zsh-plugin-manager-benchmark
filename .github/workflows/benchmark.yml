@@ -61,6 +61,8 @@ jobs:
       - name: Install ${{ matrix.kind }}
         if: matrix.install != ''
         run: eval "${{ matrix.install }}"
+      - name: Set up Python
+        uses: actions/setup-python@v2
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -79,9 +81,6 @@ jobs:
           mkdir -p "$HOME/.${{ matrix.kind }}"
           cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
 
-      - name: DIAG - before install benchmark
-        run: ls -la "$HOME" && env | sort
-
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
           hyperfine \
@@ -90,7 +89,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: zsh -i {0}
+        shell: 'zsh -ic {0}'
 
       - name: DIAG - after install benchmark / before load benchmark
         run: ls -la "$HOME/.${{ matrix.kind }}" && ls -laR "$HOME/.${{ matrix.kind }}/plugins"* 2>/dev/null
@@ -102,10 +101,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: zsh -i {0}
-
-      # - name: Set up Python
-      #   uses: actions/setup-python@v2
+        shell: 'zsh -ic {0}'
 
       # - name: Install Python dependencies
       #   run: |
