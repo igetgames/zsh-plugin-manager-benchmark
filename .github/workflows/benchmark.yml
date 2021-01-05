@@ -94,13 +94,15 @@ jobs:
           echo "$-"
           echo "$ZSH"
           echo "$0"
+          echo "$fpath"
           local -aU insecure_dirs
           insecure_dirs=(${(f@):-"$(compaudit 2>/dev/null)"})
           ls -ld "${(@)insecure_dirs}"
-          compaudit | xargs chmod g-w,o-w '{}'
+          type compaudit && \
+            compaudit | xargs chmod g-w,o-w '{}'
           EOF
           chmod +x "$script"
-          zsh -vc "$script"
+          zsh -ic "$script"
         shell: 'script -q -e -c "bash -ex {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'install' step
