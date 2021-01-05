@@ -66,13 +66,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Update plugins
-        run: ./bench.sh update-plugins
+      - name: Update ${{ matrix.install }} .zshrc
+        run: ./bench.sh --kind "${{ matrix.kind }}" update-plugins
 
       - name: Copy ${{ matrix.kind }} .zshrc
         run: |
           cp "$GITHUB_WORKSPACE/src/${{ matrix.kind }}/zshrc" "$HOME/.zshrc"
-      - name: Copy plugin manager files
+      - name: Copy ${{ matrix.kind }} files
         if: matrix.copy != ''
         run: cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
 
@@ -85,6 +85,7 @@ jobs:
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
+          --show-output \
           'zsh -ic exit'
 
       - name: DIAG - after install benchmark / before load benchmark
@@ -95,6 +96,7 @@ jobs:
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
+          --show-output \
           'zsh -ic exit'
 
       - name: Set up Python
