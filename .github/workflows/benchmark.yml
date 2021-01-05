@@ -55,8 +55,12 @@ jobs:
           - kind: zplug
             install: git clone https://github.com/zplug/zplug "$HOME/.zplug"
             prepare: 'rm -rf "$HOME/.zplug/repos"'
-
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
     steps:
+      - name: Set up locale
+        run: sudo apt install -y locales && locale-gen en_US.UTF-8
       - name: Install zsh
         if: runner.os == 'Linux'
         run: sudo apt install zsh
@@ -94,8 +98,9 @@ jobs:
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
+          --style color \
           --show-output \
-          'zsh -ic exit'
+          'zsh -ilc exit'
 
       - name: DIAG - after install benchmark / before load benchmark
         run: ls -la "$HOME" && env | sort
@@ -105,8 +110,9 @@ jobs:
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
+          --style color \
           --show-output \
-          'zsh -ic exit'
+          'zsh -ilc exit'
 
       # - name: Set up Python
       #   uses: actions/setup-python@v2
