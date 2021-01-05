@@ -92,7 +92,7 @@ jobs:
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          --show-output \
+          --style color \
           'zsh -ic exit'
         shell: 'script -q -e -c "bash {0}"'
 
@@ -101,7 +101,6 @@ jobs:
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
-          --show-output \
           'zsh -ic exit'
         shell: 'script -q -e -c "bash {0}"'
 
