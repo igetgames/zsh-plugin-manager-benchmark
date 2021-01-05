@@ -21,6 +21,11 @@ env:
   BRANCH_NAME: ${{ github.event.inputs.branch_name || 'benchmark' }}
   COMMIT_MESSAGE: ${{ github.event.inputs.commit_message || 'Update benchmark results' }}
 
+defaults:
+  run:
+    shell: bash
+    working-directory: .
+
 jobs:
   benchmark:
     name: Benchmark
@@ -28,7 +33,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        kind: [base antibody antigen sheldon zgen zinit zplug]
         include:
           - kind: base
           - kind: antibody
@@ -104,18 +108,18 @@ jobs:
           --show-output \
           'zsh -ic exit'
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      # - name: Set up Python
+      #   uses: actions/setup-python@v2
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install seaborn pandas
+      # - name: Install Python dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     python -m pip install seaborn pandas
 
-      - name: Create charts
-        run: |
-          ./chart.py install
-          ./chart.py load
+      # - name: Create charts
+      #   run: |
+      #     ./chart.py install
+      #     ./chart.py load
 
       # - name: Push updated files to the benchmark branch
       #   run: |
