@@ -90,17 +90,19 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
+        shell: zsh -i {0}
 
       - name: DIAG - after install benchmark / before load benchmark
-        run: ls -la "$HOME/.${{ matrix.kind }}" && ls -la "$HOME/.${{ matrix.kind }}/plugins 2>/dev/null"
+        run: ls -la "$HOME/.${{ matrix.kind }}" && ls -laR "$HOME/.${{ matrix.kind }}/plugins"* 2>/dev/null
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
-          --style color \
+          --show-output \
           'zsh -ic exit'
+        shell: zsh -i {0}
 
       # - name: Set up Python
       #   uses: actions/setup-python@v2
