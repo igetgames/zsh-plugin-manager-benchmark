@@ -3,12 +3,12 @@
 # Supported types of plugin managers. ('base' is an empty .zshrc)
 PLUGIN_MANAGERS="base antibody antigen sheldon zgen zinit zplug"
 
-DOCKER_RUN_INTERACTIVE="-i"
+DOCKER_RUN_INTERACTIVE="-it"
 HYPERFINE_STYLE="auto"
 
 if [ -n "$CI" ]; then
     # Disable interactive input during `docker run`
-    DOCKER_RUN_INTERACTIVE="-i=false"
+    DOCKER_RUN_INTERACTIVE="-i=false -t=false"
 
     # Disable interactive output from `hyperfine`
     HYPERFINE_STYLE="color"
@@ -105,7 +105,7 @@ _docker_run() {
         $args \
         -v "$PWD/results:/target" \
         -v "$PWD/src/$kind/zshrc:/root/.zshrc" \
-        $DOCKER_RUN_INTERACTIVE -t zsh-plugin-manager-benchmark \
+        $DOCKER_RUN_INTERACTIVE zsh-plugin-manager-benchmark \
         "$@"
 }
 
