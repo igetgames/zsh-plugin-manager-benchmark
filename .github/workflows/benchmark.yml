@@ -89,7 +89,9 @@ jobs:
       - name: Fix zsh completion permissions
         run: |
           zsh -vc <<EOF
-          local -aU insecure_dirs=(${(f@):-"$(compaudit 2>/dev/null)"})
+          env | sort
+          local -aU insecure_dirs
+          insecure_dirs=(${(f@):-"$(compaudit 2>/dev/null)"})
           ls -ld "${(@)insecure_dirs}"
           compaudit | xargs chmod g-w,o-w
           EOF
