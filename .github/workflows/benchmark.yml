@@ -48,15 +48,15 @@ jobs:
           ./chart.py install
           ./chart.py load
 
-      - name: Push updated files to the ${{ env.BRANCH_NAME }} branch
+      - name: Push updated files to the benchmark branch
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add -A
           git commit -m "${{ env.COMMIT_MESSAGE }}"
-          git push -q -f origin HEAD:${{ env.BRANCH_NAME }}
+          git push -q -f origin HEAD:refs/heads/${{ env.BRANCH_NAME }}
 
-      - name: Open a pull request from the ${{ env.BRANCH_NAME }} branch
+      - name: Open a pull request to master
         uses: actions/github-script@v3
         with:
           script: |
