@@ -61,9 +61,13 @@ jobs:
       - name: Install ${{ matrix.kind }}
         if: matrix.install != ''
         run: eval "${{ matrix.install }}"
+
       - name: Set up Python
         uses: actions/setup-python@v2
-
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+      #          python -m pip install seaborn pandas
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -89,7 +93,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: 'zsh -ic {0}'
+        shell: bash -i {0}
 
       - name: DIAG - after install benchmark / before load benchmark
         run: ls -la "$HOME/.${{ matrix.kind }}" && ls -laR "$HOME/.${{ matrix.kind }}/plugins"* 2>/dev/null
@@ -101,12 +105,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: 'zsh -ic {0}'
-
-      # - name: Install Python dependencies
-      #   run: |
-      #     python -m pip install --upgrade pip
-      #     python -m pip install seaborn pandas
+        shell: bash -i {0}
 
       # - name: Create charts
       #   run: |
