@@ -88,13 +88,17 @@ jobs:
 
       - name: Fix zsh completion permissions
         run: |
-          zsh -vc <<EOF
+          script="${{ runner.temp }}/zsh-compfix-$$"
+          cat >"$script" <<'EOF'
+          #!/usr/bin/env zsh
           env | sort
           local -aU insecure_dirs
           insecure_dirs=(${(f@):-"$(compaudit 2>/dev/null)"})
           ls -ld "${(@)insecure_dirs}"
           compaudit | xargs chmod g-w,o-w
           EOF
+          chmod +x "$script"
+          zsh -vc "$script"
         # shell: 'script -q -e -c "bash {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'install' step
