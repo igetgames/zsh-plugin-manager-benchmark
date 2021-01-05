@@ -24,23 +24,21 @@ env:
 jobs:
   benchmark:
     name: Benchmark ${{ matrix.kind }}
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        kind: [base, antibody, antigen, sheldon, zgen, zinit, zplug]
-        os: [macos-latest]
         include:
           - kind: base
           - kind: antibody
-            install: brew install antibody
+            install: curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
             prepare: 'rm -rf "$HOME/.cache/antibody"'
             copy: '$GITHUB_WORKSPACE/src/antibody/plugins.txt:$HOME/.antibody/plugins.txt'
           - kind: antigen
             install: curl -fLsS -o "$HOME/antigen.zsh" https://git.io/antigen
             prepare: 'rm -rf "$HOME/.antigen"'
           - kind: sheldon
-            install: brew install sheldon
+            install: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "rossmacarthur/sheldon" --to /usr/local/bin
             prepare: 'find "$HOME/.sheldon" -mindepth 1 -maxdepth 1 ! -name "plugins.toml" -exec rm -rf {} \;'
             copy: '$GITHUB_WORKSPACE/src/sheldon/plugins.toml:$HOME/.sheldon/plugins.toml'
           - kind: zgen
@@ -56,8 +54,11 @@ jobs:
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
     steps:
+      - name: Install zsh
+        if: runner.os == 'Linux'
+        run: sudo apt install -y zsh
       - name: Install hyperfine
-        run: brew install hyperfine
+        run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
       - name: Install ${{ matrix.kind }}
         if: matrix.install != ''
         run: eval "${{ matrix.install }}"
@@ -93,10 +94,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: bash -i {0}
-
-      - name: DIAG - after install benchmark / before load benchmark
-        run: ls -la "$HOME/.${{ matrix.kind }}" && ls -laR "$HOME/.${{ matrix.kind }}/plugins"* 2>/dev/null
+        shell: 'script -q -e -c "bash {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
@@ -105,7 +103,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: bash -i {0}
+        shell: 'script -q -e -c "bash {0}"'
 
       # - name: Create charts
       #   run: |
