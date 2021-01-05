@@ -28,6 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        kind: [base, antibody, antigen, sheldon, zgen, zinit, zplug]
         os: [ubuntu-latest, macos-latest]
         include:
           - kind: base
