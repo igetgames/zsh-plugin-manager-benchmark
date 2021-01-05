@@ -26,48 +26,42 @@ jobs:
     name: Benchmark
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         kind: [base antibody antigen sheldon zgen zinit zplug]
         include:
           - kind: antibody
+            install: curl -fLsS git.io/antibody | sudo sh -s - -b /usr/local/bin
             prepare: 'rm -rf "$HOME/.cache/antibody"'
             copy: '$GITHUB_WORKSPACE/src/antibody/plugins.txt:$HOME/.antibody/plugins.txt'
           - kind: antigen
+            install: curl -fLsS -o "$HOME/antigen.zsh" https://git.io/antigen
             prepare: 'rm -rf "$HOME/.antigen"'
           - kind: sheldon
+            install: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "rossmacarthur/sheldon" --to /usr/local/bin
             prepare: 'find "$HOME/.sheldon" -mindepth 1 -maxdepth 1 ! -name "plugins.toml" -exec rm -rf {} \;'
             copy: '$GITHUB_WORKSPACE/src/sheldon/plugins.toml:$HOME/.sheldon/plugins.toml'
           - kind: zgen
+            install: git clone https://github.com/tarjoilija/zgen.git "$HOME/.zgen"
             prepare: 'git -C "$HOME/.zgen" clean -dffx'
           - kind: zinit
+            install: mkdir -p "$HOME/.zinit" && git clone https://github.com/zdharma/zinit.git "$HOME/.zinit/bin"
             prepare: 'find "$HOME/.zinit" -mindepth 1 -maxdepth 1 ! -name "bin" -exec rm -rf {} \;'
           - kind: zplug
+            install: git clone https://github.com/zplug/zplug "$HOME/.zplug"
             prepare: 'rm -rf "$HOME/.zplug/repos"'
 
     steps:
       - name: Install zsh
         if: runner.os == 'Linux'
-        run: sudo apt-get install zsh
+        run: sudo apt install zsh
       - name: Install hyperfine
         run: |
           curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
           | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
-      - name: Install Antibody
-        run: curl -fLsS git.io/antibody | sudo sh -s - -b /usr/local/bin
-      - name: Install Antigen
-        run: curl -fLsS -o "$HOME/antigen.zsh" https://git.io/antigen
-      - name: Install Sheldon
-        run: |
-          curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
-            | sudo bash -s -- --repo "rossmacarthur/sheldon" --to /usr/local/bin
-      - name: Install Zgen
-        run: git clone https://github.com/tarjoilija/zgen.git "$HOME/.zgen"
-      - name: Install Zinit
-        run: |
-          mkdir -p "$HOME/.zinit" \
-            && git clone https://github.com/zdharma/zinit.git "$HOME/.zinit/bin"
-      - name: Install Zplug
-        run: git clone https://github.com/zplug/zplug "$HOME/.zplug"
+      - name: Install ${{ matrix.kind }}
+        if: matrix.install != ''
+        run: eval "${{ matrix.install }}"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -75,7 +69,7 @@ jobs:
       - name: Update plugins
         run: ./bench.sh update-plugins
 
-      - name: Copy .zshrc
+      - name: Copy ${{ matrix.kind }} .zshrc
         run: |
           cp "$GITHUB_WORKSPACE/src/${{ matrix.kind }}/zshrc" "$HOME/.zshrc"
       - name: Copy plugin manager files
@@ -85,7 +79,7 @@ jobs:
       - name: DIAG - before install benchmark
         run: ls -la "$HOME"
 
-      - name: Benchmark the 'install' step
+      - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
           hyperfine \
           --prepare "${{ matrix.prepare }}" \
@@ -96,7 +90,7 @@ jobs:
       - name: DIAG - after install benchmark / before load benchmark
         run: ls -la "$HOME"
 
-      - name: Benchmark the 'load' step
+      - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
           hyperfine \
           --warmup 3 \
@@ -116,26 +110,26 @@ jobs:
           ./chart.py install
           ./chart.py load
 
-      - name: Push updated files to the benchmark branch
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add -A
-          git commit -m "${{ env.COMMIT_MESSAGE }}"
-          git push -q -f origin HEAD:refs/heads/${{ env.BRANCH_NAME }}
+      # - name: Push updated files to the benchmark branch
+      #   run: |
+      #     git config user.name github-actions
+      #     git config user.email github-actions@github.com
+      #     git add -A
+      #     git commit -m "${{ env.COMMIT_MESSAGE }}"
+      #     git push -q -f origin HEAD:refs/heads/${{ env.BRANCH_NAME }}
 
-      - name: Open a pull request to master
-        uses: actions/github-script@v3
-        with:
-          script: |
-            const {owner, repo} = context.repo
-            const branch = '${{ env.BRANCH_NAME }}'
-            const title = '${{ env.COMMIT_MESSAGE }}'
-            const branchesResult = await github.repos.listBranches({ owner, repo })
-            if (branchesResult.status !== 200 || !branchesResult.data.find(({ name }) => name === branch)) {
-              return
-            }
-            const prsResult = await github.pulls.list({ owner, repo, head: branch, state: 'open' })
-            if (prsResult.status === 200 && prsResult.data.length === 0) {
-              await github.pulls.create({ owner, repo, head: branch, title, base: 'master' })
-            }
+      # - name: Open a pull request to master
+      #   uses: actions/github-script@v3
+      #   with:
+      #     script: |
+      #       const {owner, repo} = context.repo
+      #       const branch = '${{ env.BRANCH_NAME }}'
+      #       const title = '${{ env.COMMIT_MESSAGE }}'
+      #       const branchesResult = await github.repos.listBranches({ owner, repo })
+      #       if (branchesResult.status !== 200 || !branchesResult.data.find(({ name }) => name === branch)) {
+      #         return
+      #       }
+      #       const prsResult = await github.pulls.list({ owner, repo, head: branch, state: 'open' })
+      #       if (prsResult.status === 200 && prsResult.data.length === 0) {
+      #         await github.pulls.create({ owner, repo, head: branch, title, base: 'master' })
+      #       }
