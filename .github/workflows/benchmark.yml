@@ -86,14 +86,18 @@ jobs:
           mkdir -p "$HOME/.${{ matrix.kind }}"
           cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
 
+      - name: DIAG - zsh
+        run: zsh -ic compaudit
+        shell: 'script -q -e -c "bash {0}"'
+
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
           hyperfine \
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          --style color \
-          'zsh -ic exit'
+          --show-output \
+          'zsh -ivc exit'
         shell: 'script -q -e -c "bash {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
