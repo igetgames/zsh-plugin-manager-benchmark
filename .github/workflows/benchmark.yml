@@ -30,6 +30,7 @@ jobs:
       matrix:
         kind: [base antibody antigen sheldon zgen zinit zplug]
         include:
+          - kind: base
           - kind: antibody
             install: curl -fLsS git.io/antibody | sudo sh -s - -b /usr/local/bin
             prepare: 'rm -rf "$HOME/.cache/antibody"'
@@ -68,16 +69,20 @@ jobs:
 
       - name: Update ${{ matrix.install }} .zshrc
         run: ./bench.sh --kind "${{ matrix.kind }}" update-plugins
+        if: matrix.kind != 'base'
 
       - name: Copy ${{ matrix.kind }} .zshrc
         run: |
-          cp "$GITHUB_WORKSPACE/src/${{ matrix.kind }}/zshrc" "$HOME/.zshrc"
+          cat "$GITHUB_WORKSPACE/src/${{ matrix.kind }}/zshrc" \
+          | sed -e 's/\/root/\$HOME/g' > "$HOME/.zshrc"
       - name: Copy ${{ matrix.kind }} files
         if: matrix.copy != ''
-        run: cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
+        run: |
+          mkdir -p "$HOME/.${{ matrix.kind }}"
+          cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
 
       - name: DIAG - before install benchmark
-        run: ls -la "$HOME"
+        run: ls -la "$HOME" && env | sort
 
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
@@ -89,7 +94,7 @@ jobs:
           'zsh -ic exit'
 
       - name: DIAG - after install benchmark / before load benchmark
-        run: ls -la "$HOME"
+        run: ls -la "$HOME" && env | sort
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
