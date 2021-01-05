@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         kind: [base, antibody, antigen, sheldon, zgen, zinit, zplug]
-        os: [ubuntu-latest, macos-latest]
+        os: [macos-latest]
         include:
           - kind: base
           - kind: antibody
@@ -56,15 +56,6 @@ jobs:
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
     steps:
-      - name: Set up locale
-        run: sudo locale-gen en_US.UTF-8
-        if: runner.os == 'Linux'
-      - name: Install zsh on ${{ runner.os }}
-        if: runner.os == 'Linux'
-        run: sudo apt install zsh
-      - name: Install zsh on ${{ runner.os }}
-        if: runner.os == 'macOS'
-        run: brew install zsh
       - name: Install hyperfine
         run: |
           curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
@@ -76,7 +67,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Update ${{ matrix.install }} .zshrc
+      - name: Update ${{ matrix.kind }} .zshrc
         run: ./bench.sh --kind "${{ matrix.kind }}" update-plugins
         if: matrix.kind != 'base'
 
@@ -96,7 +87,7 @@ jobs:
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
           hyperfine \
-          --prepare "${{ matrix.prepare }}" \
+          --prepare "$(echo ${{ matrix.prepare }})" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --style color \
