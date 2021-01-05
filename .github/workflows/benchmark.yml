@@ -86,9 +86,14 @@ jobs:
           mkdir -p "$HOME/.${{ matrix.kind }}"
           cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
 
-      - name: DIAG - zsh
-        run: zsh -ic compaudit
-        shell: 'script -q -e -c "bash {0}"'
+      - name: Fix zsh completion permissions
+        run: |
+          zsh -vc <<EOF
+          local -aU insecure_dirs=(${(f@):-"$(compaudit 2>/dev/null)"})
+          ls -ld "${(@)insecure_dirs}"
+          compaudit | xargs chmod g-w,o-w
+          EOF
+        # shell: 'script -q -e -c "bash {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
