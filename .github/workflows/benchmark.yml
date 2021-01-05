@@ -85,7 +85,7 @@ jobs:
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
           hyperfine \
-          --prepare "$(echo ${{ matrix.prepare }})" \
+          --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --style color \
