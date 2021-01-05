@@ -23,8 +23,8 @@ env:
 
 jobs:
   benchmark:
-    name: Benchmark ${{ matrix.kind }} [${{ matrix.os }}]
-    runs-on: ${{ matrix.os }}
+    name: Benchmark ${{ matrix.kind }}
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -57,9 +57,7 @@ jobs:
       LC_ALL: en_US.UTF-8
     steps:
       - name: Install hyperfine
-        run: |
-          curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh \
-          | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
+        run: brew install hyperfine
       - name: Install ${{ matrix.kind }}
         if: matrix.install != ''
         run: eval "${{ matrix.install }}"
