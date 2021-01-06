@@ -56,7 +56,14 @@ jobs:
     steps:
       - name: Install zsh
         if: runner.os == 'Linux'
-        run: sudo apt install -y zsh
+        run: |
+          sudo apt install -y zsh
+          echo "skip_global_compinit=1" >> "$HOME/.zshenv"
+          cat <<"EOF" | zsh -esvx
+          autoload -U compaudit
+          compaudit | xargs sudo chmod g-w,o-w
+          EOF
+
       - name: Install hyperfine
         run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
       - name: Install ${{ matrix.kind }}
@@ -85,27 +92,6 @@ jobs:
         run: |
           mkdir -p "$HOME/.${{ matrix.kind }}"
           cp $(echo "${{ matrix.copy }}" | sed -e 's/:/ /')
-
-      - name: Fix zsh completion permissions
-        run: |
-          script="${{ runner.temp }}/zsh-compfix-$$"
-          cat >"$script" <<'EOF'
-          #!/usr/bin/env zsh
-          echo "$-"
-          echo "$ZSH"
-          echo "$0"
-          echo "$fpath"
-          autoload compaudit || echo "hmm, no compaudit"
-          local -aU insecure_dirs
-          insecure_dirs=(${(f@):-"$(compaudit 2>/dev/null)"})
-          ls -ld "${(@)insecure_dirs}"
-          type compaudit && \
-            compaudit | xargs chmod g-w,o-w '{}'
-          EOF
-          chmod +x "$script"
-          zsh -vic "$script"
-          zsh -vic compaudit
-        shell: 'script -q -e -c "bash -ex {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
