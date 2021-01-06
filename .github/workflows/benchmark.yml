@@ -60,15 +60,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt install -y zsh
-          echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          cat <<"EOF" | zsh -x
-          autoload -U compaudit
-          local -aU insecure_dirs
-          insecure_dirs=( "$HOME" ${(f@):-"$(compaudit 2>/dev/null)"} )
-          ls -ld "$HOME"
-          [ -z "$insecure_dirs" ] && return
-          printf '%s\0' "$insecure_dirs[@]" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R g-w,o-w '{}'
-          EOF
+          #echo "skip_global_compinit=1" >> "$HOME/.zshenv"
+          zsh -cvx 'printf \'%s\0\' "("$HOME" /usr/share/zsh /usr/share/zsh/*)[@]" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R go-w \'{}\''
 
       - name: Install hyperfine
         run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
