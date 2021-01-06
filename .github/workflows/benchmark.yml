@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo apt install -y zsh
           echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          cat <<"EOF" | zsh -evx
+          cat <<"EOF" | zsh -vx
           autoload -U compaudit
           local -aU insecure_dirs
           insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
