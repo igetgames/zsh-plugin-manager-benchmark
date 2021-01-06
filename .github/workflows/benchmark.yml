@@ -60,12 +60,12 @@ jobs:
         run: |
           sudo apt install -y zsh
           echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          cat <<"EOF" | zsh -vx
+          cat <<"EOF" | zsh
           autoload -U compaudit
           local -aU insecure_dirs
           insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
           [ -z "$insecure_dirs" ] && return
-          echo "${(@)insecure_dirs}" | xargs -t sudo chmod -vR g-w,o-w
+          echo "${(@)insecure_dirs}" | xargs sudo chmod -R g-w,o-w
           EOF
 
       - name: Install hyperfine
@@ -105,7 +105,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --show-output \
           'zsh -ic exit'
-        shell: script -q -e -c "bash -ec 'stty rows 40 cols 80; TERM=xterm {0}'"
+        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
