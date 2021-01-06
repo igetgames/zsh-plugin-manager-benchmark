@@ -67,7 +67,7 @@ jobs:
           insecure_dirs=( "$HOME" ${(f@):-"$(compaudit 2>/dev/null)"} )
           ls -ld "$HOME"
           [ -z "$insecure_dirs" ] && return
-          printf '%s\0' "$insecure_dirs" | xargs -0 -I{} -t sudo chmod -R g-w,o-w '{}'
+          printf '%s\0' "$insecure_dirs" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R g-w,o-w '{}'
           EOF
 
       - name: Install hyperfine
@@ -86,17 +86,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v2
-
-      - name: DIAG - check for insecure dirs
-        run: |
-          cat <<"EOF" | zsh -vx
-          autoload -U compaudit
-          local -aU insecure_dirs
-          insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
-          ls -ld "$HOME"
-          [ -z "$insecure_dirs" ] && return
-          printf '%s\0' "${(@)insecure_dirs}" | xargs -0 sudo chmod -R g-w,o-w
-          EOF
 
       - name: Update ${{ matrix.kind }} .zshrc
         run: ./bench.sh --kind "${{ matrix.kind }}" update-plugins
