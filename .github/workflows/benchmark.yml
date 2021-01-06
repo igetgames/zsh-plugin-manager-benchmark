@@ -60,7 +60,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt install -y zsh
-          zsh -c "local -aU dirs=(\"\$HOME\" /usr/share/zsh /usr/share/zsh/*); printf '%s\0' \"\$dirs[@]\" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R go-w '{}'"
+          zsh -c "local -aU dirs=(\"\$HOME\" /usr/share/zsh); printf '%s\0' \"\$dirs[@]\" | xargs -0 -P2 -n1 -I{} sudo chmod -R go-w '{}'"
 
       - name: Install hyperfine
         run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
@@ -96,12 +96,12 @@ jobs:
       - name: Benchmark the ${{ matrix.kind }} 'install' step
         run: |
           hyperfine \
-          --prepare "${{ matrix.prepare }}; sync" \
+          --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --style color \
-          'zsh -ic "autoload -U compaudit; compaudit; exit"'
-        shell: script -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
+          'zsh -ic exit'
+        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
@@ -110,7 +110,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
           --style color \
           'zsh -ic exit'
-        shell: script -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
+        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       # - name: Create charts
       #   run: |
