@@ -61,7 +61,7 @@ jobs:
         run: |
           sudo apt install -y zsh
           #echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          zsh -cvx 'printf \'%s\0\' "("$HOME" /usr/share/zsh /usr/share/zsh/*)[@]" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R go-w \'{}\''
+          zsh -cvx "local -aU dirs=(\"\$HOME\" /usr/share/zsh /usr/share/zsh/*); printf '%s\0' \"$dirs[@]\" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R go-w '{}'"
 
       - name: Install hyperfine
         run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
