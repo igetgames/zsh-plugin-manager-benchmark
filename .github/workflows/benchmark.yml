@@ -65,7 +65,7 @@ jobs:
           local -aU insecure_dirs
           insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
           [ -z "$insecure_dirs" ] && return
-          printf '%s\0' "${(@)insecure_dirs}" | xargs -0 sudo chmod -R g-w,o-w
+          printf '%s\0' "${(@)insecure_dirs}" | xargs -0 -t sudo chmod -R g-w,o-w
           EOF
 
       - name: Install hyperfine
@@ -115,7 +115,8 @@ jobs:
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          'zsh -ic exit'
+          --show-output \
+          'zsh -ic "autoload -U compaudit; compaudit; exit"'
         shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
@@ -123,6 +124,7 @@ jobs:
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
+          --show-output \
           'zsh -ic exit'
         shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
