@@ -31,6 +31,7 @@ jobs:
       matrix:
         include:
           - kind: base
+            prepare: return
           - kind: antibody
             install: curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
             prepare: 'rm -rf "$HOME/.cache/antibody"'
@@ -63,10 +64,10 @@ jobs:
           cat <<"EOF" | zsh -x
           autoload -U compaudit
           local -aU insecure_dirs
-          insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
+          insecure_dirs=( "$HOME" ${(f@):-"$(compaudit 2>/dev/null)"} )
           ls -ld "$HOME"
           [ -z "$insecure_dirs" ] && return
-          printf '%s\0' "$insecure_dirs[@]" | xargs -0 -t sudo chmod -R g-w,o-w
+          printf '%s\0' "$insecure_dirs" | xargs -0 -I{} -t sudo chmod -R g-w,o-w '{}'
           EOF
 
       - name: Install hyperfine
@@ -120,25 +121,13 @@ jobs:
           --show-output \
           'zsh -ic "autoload -U compaudit; compaudit; exit"'
         shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
-        if: matrix.kind != 'antibody'
-
-      - name: Benchmark the ${{ matrix.kind }} 'install' step
-        run: |
-          hyperfine \
-          --prepare "${{ matrix.prepare }}; sync" \
-          --warmup 3 \
-          --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          --show-output \
-          'zsh -icvx "autoload -U compaudit; compaudit; exit"'
-        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -ex {0}"
-        if: matrix.kind == 'antibody'
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
           hyperfine \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
-          --show-output \
+          --style color \
           'zsh -ic exit'
         shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
