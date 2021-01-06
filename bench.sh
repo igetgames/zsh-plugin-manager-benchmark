@@ -3,6 +3,17 @@
 # Supported types of plugin managers. ('base' is an empty .zshrc)
 PLUGIN_MANAGERS="base antibody antigen sheldon zgen zinit zplug"
 
+DOCKER_RUN_INTERACTIVE="-it"
+HYPERFINE_STYLE="auto"
+
+if [ -n "$CI" ]; then
+    # Disable interactive input during `docker run`
+    DOCKER_RUN_INTERACTIVE="-i=false -t=false"
+
+    # Disable interactive output from `hyperfine`
+    HYPERFINE_STYLE="color"
+fi
+
 # Prints an error message and exits.
 err() {
     printf "$@"
@@ -94,7 +105,7 @@ _docker_run() {
         $args \
         -v "$PWD/results:/target" \
         -v "$PWD/src/$kind/zshrc:/root/.zshrc" \
-        -it zsh-plugin-manager-benchmark \
+        $DOCKER_RUN_INTERACTIVE zsh-plugin-manager-benchmark \
         "$@"
 }
 
@@ -186,6 +197,7 @@ command_install() {
                 --prepare "$prepare" \
                 --warmup 3 \
                 --export-json "/target/install-$k.json" \
+                --style "$HYPERFINE_STYLE" \
                 'zsh -ic exit'
         fi
     done
@@ -205,6 +217,7 @@ command_load() {
                 hyperfine \
                 --warmup 3 \
                 --export-json "/target/load-$k.json" \
+                --style "$HYPERFINE_STYLE" \
                 'zsh -ic exit'
         fi
     done
@@ -268,7 +281,7 @@ command_versions() {
 }
 
 main() {
-    local cmd kind
+    local cmd kind code
 
     while test $# -gt 0; do
         case $1 in
@@ -322,6 +335,10 @@ main() {
             err "unreachable\n"
             ;;
     esac
+
+    code=$?
+    test $code -ne 0 && err "Error: '%s' command failed with error code %d\n\n" "$cmd" $code
+    exit 0
 }
 
 main "$@"
