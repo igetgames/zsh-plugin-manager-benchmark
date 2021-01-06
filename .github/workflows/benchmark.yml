@@ -67,7 +67,7 @@ jobs:
           insecure_dirs=( "$HOME" ${(f@):-"$(compaudit 2>/dev/null)"} )
           ls -ld "$HOME"
           [ -z "$insecure_dirs" ] && return
-          printf '%s\0' "$insecure_dirs" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R g-w,o-w '{}'
+          printf '%s\0' "$insecure_dirs[@]" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R g-w,o-w '{}'
           EOF
 
       - name: Install hyperfine
