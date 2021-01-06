@@ -60,28 +60,40 @@ jobs:
         run: |
           sudo apt install -y zsh
           echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          cat <<"EOF" | zsh
+          cat <<"EOF" | zsh -x
           autoload -U compaudit
           local -aU insecure_dirs
           insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
           [ -z "$insecure_dirs" ] && return
-          echo "${(@)insecure_dirs}" | xargs sudo chmod -R g-w,o-w
+          printf '%s\0' "${(@)insecure_dirs}" | xargs -0 sudo chmod -R g-w,o-w
           EOF
 
       - name: Install hyperfine
         run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
+
+      - name: Set up Python 2
+        uses: actions/setup-python@v2
+        with:
+          python-version: '2.x'
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip
+
       - name: Install ${{ matrix.kind }}
         if: matrix.install != ''
         run: eval "${{ matrix.install }}"
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-      #          python -m pip install seaborn pandas
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: DIAG - check for insecure dirs
+        run: |
+          cat <<"EOF" | zsh -vx
+          autoload -U compaudit
+          local -aU insecure_dirs
+          insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
+          [ -z "$insecure_dirs" ] && return
+          printf '%s\0' "${(@)insecure_dirs}" | xargs -0 sudo chmod -R g-w,o-w
+          EOF
 
       - name: Update ${{ matrix.kind }} .zshrc
         run: ./bench.sh --kind "${{ matrix.kind }}" update-plugins
@@ -103,7 +115,6 @@ jobs:
           --prepare "${{ matrix.prepare }}" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          --show-output \
           'zsh -ic exit'
         shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
@@ -113,7 +124,7 @@ jobs:
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
           'zsh -ic exit'
-        shell: 'script -q -e -c "bash {0}"'
+        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       # - name: Create charts
       #   run: |
