@@ -26,7 +26,7 @@ jobs:
     name: Benchmark ${{ matrix.kind }}
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 2
+      max-parallel: 1
       fail-fast: false
       matrix:
         include:
@@ -60,8 +60,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt install -y zsh
-          #echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          zsh -cvx "local -aU dirs=(\"\$HOME\" /usr/share/zsh /usr/share/zsh/*); printf '%s\0' \"\$dirs[@]\" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R go-w '{}'"
+          zsh -c "local -aU dirs=(\"\$HOME\" /usr/share/zsh /usr/share/zsh/*); printf '%s\0' \"\$dirs[@]\" | xargs -0 -P8 -n1 -I{} -t sudo chmod -R go-w '{}'"
 
       - name: Install hyperfine
         run: curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | sudo bash -s -- --repo "sharkdp/hyperfine" --to /usr/local/bin
@@ -87,7 +86,7 @@ jobs:
       - name: Copy ${{ matrix.kind }} .zshrc
         run: |
           cat "$GITHUB_WORKSPACE/src/${{ matrix.kind }}/zshrc" \
-          | sed -e 's/\/root/\$HOME/g' > "$HOME/.zshrc"
+            | sed -e 's/\/root/\$HOME/g' > "$HOME/.zshrc"
       - name: Copy ${{ matrix.kind }} files
         if: matrix.copy != ''
         run: |
@@ -100,9 +99,9 @@ jobs:
           --prepare "${{ matrix.prepare }}; sync" \
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
-          --show-output \
+          --style color \
           'zsh -ic "autoload -U compaudit; compaudit; exit"'
-        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
+        shell: script -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
         run: |
@@ -111,7 +110,7 @@ jobs:
           --export-json "$GITHUB_WORKSPACE/results/load-${{ matrix.kind }}.json" \
           --style color \
           'zsh -ic exit'
-        shell: script -q -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
+        shell: script -e -c "stty rows 40 cols 80; TERM=xterm bash -e {0}"
 
       # - name: Create charts
       #   run: |
