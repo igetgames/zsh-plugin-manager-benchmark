@@ -26,6 +26,7 @@ jobs:
     name: Benchmark ${{ matrix.kind }}
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 2
       fail-fast: false
       matrix:
         include:
@@ -59,9 +60,12 @@ jobs:
         run: |
           sudo apt install -y zsh
           echo "skip_global_compinit=1" >> "$HOME/.zshenv"
-          cat <<"EOF" | zsh -esvx
+          cat <<"EOF" | zsh -evx
           autoload -U compaudit
-          compaudit | xargs sudo chmod g-w,o-w
+          local -aU insecure_dirs
+          insecure_dirs=( ${(f@):-"$(compaudit 2>/dev/null)"} )
+          [ -z "$insecure_dirs" ] && return
+          echo "${(@)insecure_dirs}" | xargs sudo chmod g-w,o-w
           EOF
 
       - name: Install hyperfine
@@ -100,7 +104,7 @@ jobs:
           --warmup 3 \
           --export-json "$GITHUB_WORKSPACE/results/install-${{ matrix.kind }}.json" \
           --show-output \
-          'zsh -ivc exit'
+          'zsh -ic exit'
         shell: 'script -q -e -c "bash {0}"'
 
       - name: Benchmark the ${{ matrix.kind }} 'load' step
